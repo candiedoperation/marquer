@@ -21,12 +21,13 @@
 public class Marquer.Widgets.RightSelectDrive : Gtk.Grid {
     private Gtk.ListBox drive_list;
     private Gtk.Frame drive_frame;
+    private Marquer.Utils.DriveManager drive_manager;
         
     public RightSelectDrive () {
         Object ();        
     }
     
-    construct {
+    construct {        
         //Initialize Elements 
         drive_list = new Gtk.ListBox ();
         drive_list.hexpand = true;
@@ -59,6 +60,10 @@ public class Marquer.Widgets.RightSelectDrive : Gtk.Grid {
         
         drive_list.insert(listrow, 0);
         
+        drive_manager = new Marquer.Utils.DriveManager ();
+        drive_manager.drive_list_update.connect((signal_handler, drive_list) => { update_drive_list (drive_list); });
+        drive_manager.get_connected_drives ();        
+        
         this.vexpand = true;
         this.hexpand = true;
         this.row_spacing = 6;
@@ -67,5 +72,9 @@ public class Marquer.Widgets.RightSelectDrive : Gtk.Grid {
         attach (drive_frame, 0, 0);
         
         show_all();
+    }
+    
+    private void update_drive_list (List<Drive> drive_list) {
+        print("RECEIVED DRIVE LIST");
     }
 }

@@ -9,7 +9,8 @@ executable(
     'src/Widgets/LeftSelectDisk.vala',
     'src/Widgets/LeftSelectDrive.vala',
     'src/Widgets/RightSelectDisk.vala',
-    'src/Widgets/RightSelectDrive.vala',    
+    'src/Widgets/RightSelectDrive.vala',
+    'src/Utils/DriveManager.vala',          
     dependencies: [
         dependency('gtk+-3.0'),
         dependency('granite'),
