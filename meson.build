@@ -10,6 +10,8 @@ executable(
     'src/Widgets/LeftSelectDrive.vala',
     'src/Widgets/RightSelectDisk.vala',
     'src/Widgets/RightSelectDrive.vala',
+    'src/Widgets/DriveListRowItem.vala',
+    'src/Widgets/ISOChooser.vala',        
     'src/Utils/DriveManager.vala',          
     dependencies: [
         dependency('gtk+-3.0'),

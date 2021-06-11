@@ -21,44 +21,31 @@
 public class Marquer.Widgets.RightSelectDrive : Gtk.Grid {
     private Gtk.ListBox drive_list;
     private Gtk.Frame drive_frame;
+    private Gtk.ListBoxRow drive_list_row;
+    private Gtk.ScrolledWindow drive_list_parent;
     private Marquer.Utils.DriveManager drive_manager;
         
     public RightSelectDrive () {
         Object ();        
     }
     
-    construct {        
+    construct {               
         //Initialize Elements 
         drive_list = new Gtk.ListBox ();
         drive_list.hexpand = true;
         drive_list.vexpand = true;
+        
+        drive_list_parent = new Gtk.ScrolledWindow (null, null);
+        drive_list_parent.hscrollbar_policy = Gtk.PolicyType.NEVER;
+        drive_list_parent.max_content_height = 650;
+        drive_list_parent.add (drive_list);
         
         drive_frame = new Gtk.Frame ("");
         drive_frame.hexpand = true;
         drive_frame.vexpand = true;        
         drive_frame.margin = 10; 
         drive_frame.get_label_widget ().destroy (); // Remove the Label, Workaround as null label not possible
-        drive_frame.add(drive_list);        
-        
-        var test_label = new Gtk.Label("Drive Name");
-        test_label.hexpand = true;
-        test_label.halign = Gtk.Align.START;
-                
-        var test_label_1 = new Gtk.Label ("16 GB - W12OEN");
-        test_label_1.hexpand = true;
-        test_label_1.halign = Gtk.Align.START;        
-        
-        var grid_row = new Gtk.Grid();
-        grid_row.hexpand = true;
-        grid_row.margin = 3;
-        
-        grid_row.attach(test_label, 0, 0);
-        grid_row.attach(test_label_1, 0, 1);
-        
-        var listrow = new Gtk.ListBoxRow ();
-        listrow.add(grid_row);
-        
-        drive_list.insert(listrow, 0);
+        drive_frame.add (drive_list_parent);        
         
         drive_manager = new Marquer.Utils.DriveManager ();
         drive_manager.drive_list_update.connect((signal_handler, drive_list) => { update_drive_list (drive_list); });
@@ -74,7 +61,20 @@ public class Marquer.Widgets.RightSelectDrive : Gtk.Grid {
         show_all();
     }
     
-    private void update_drive_list (List<Drive> drive_list) {
-        print("RECEIVED DRIVE LIST");
+    private void update_drive_list (List<Drive> connected_drives) {
+        drive_list.foreach((existing_drive) => { existing_drive.destroy (); });
+        connected_drives.foreach((drive) => {
+            //print (drive.get_identifier (DRIVE_IDENTIFIER_KIND_UNIX_DEVICE) + "\n");
+            print (drive.has_media ().to_string () + "\n");
+            
+            var drive_label = drive.get_identifier (DRIVE_IDENTIFIER_KIND_UNIX_DEVICE);
+            var drive_icon = drive.get_icon();
+            
+            if (drive_label.has_prefix ("/dev/mmc")) {
+                drive_icon = new ThemedIcon ("media-flash");
+            }
+                                                    
+            drive_list.insert(new Marquer.Widgets.DriveListRowItem (drive.get_name (), drive_label, drive.is_removable (), drive_icon), -1);            
+        });
     }
 }

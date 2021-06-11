@@ -23,11 +23,19 @@ public class Marquer.Utils.DriveManager : GLib.Object {
     public signal void drive_list_update (List<Drive> drive_list);
     
     public DriveManager () {
-        drive_list_update (device_manager.get_connected_drives ());                  
+                        
     }
 
     construct {
         device_manager = GLib.VolumeMonitor.get ();
+        
+        device_manager.drive_connected.connect((drive_list) => {
+            get_connected_drives ();
+        });
+        
+        device_manager.drive_disconnected.connect((drive_list) => {
+            get_connected_drives ();
+        });        
     }
     
     public void get_connected_drives () {

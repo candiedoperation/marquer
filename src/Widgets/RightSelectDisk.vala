@@ -43,6 +43,7 @@ public class Marquer.Widgets.RightSelectDisk : Gtk.Grid {
         download_optic_file = new Granite.Widgets.WelcomeButton (download_file_icon, "Download Disk Image", "Download a Disk Image from the Internet");        
         close_app = new Granite.Widgets.WelcomeButton (close_app_icon, "Close", "Close the Application");
         
+        select_optic_file.clicked.connect (browse_optic_file);
         close_app.clicked.connect (close_application);        
         
         this.vexpand = true;
@@ -59,5 +60,9 @@ public class Marquer.Widgets.RightSelectDisk : Gtk.Grid {
     
     private void close_application () {
          GLib.Application.get_default ().quit ();
+    }
+    
+    private void browse_optic_file () {
+        var ISOChooser = Marquer.Widgets.ISOChooser.instance; //Used instance to return new function, helps preventing multiple dialog opens
     }
 }

@@ -29,6 +29,7 @@ public class Marquer.App : Gtk.Application {
         
         var window = new MainWindow ();
         window.application = this;
+        window.window_position = Gtk.WindowPosition.CENTER;
         window.show_all ();
     }
 }

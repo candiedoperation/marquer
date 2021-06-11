@@ -35,7 +35,7 @@ public class Marquer.Widgets.LeftSelectDrive : Gtk.Grid {
         panel_left_subtitle.get_style_context ().add_class (Granite.STYLE_CLASS_H3_LABEL);
         
         panel_left_image = new Gtk.Image(); 
-        panel_left_image.gicon = new ThemedIcon("media-flash");
+        panel_left_image.gicon = new ThemedIcon("drive-removable-media");
         panel_left_image.pixel_size = 100;     
         
         this.vexpand = true;

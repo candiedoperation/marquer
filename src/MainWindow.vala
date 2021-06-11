@@ -33,6 +33,7 @@ public class Marquer.MainWindow : Hdy.ApplicationWindow {
         Object (
             resizable: false,
             title: "Marquer",
+            window_position: Gtk.WindowPosition.CENTER,
             width_request: 1060,
             height_request: 660
         );
