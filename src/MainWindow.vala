@@ -52,7 +52,7 @@ public class Marquer.MainWindow : Hdy.ApplicationWindow {
         left_select_drive = new Marquer.Widgets.LeftSelectDrive();        
         
         right_select_disk = new Marquer.Widgets.RightSelectDisk ();
-        right_select_drive = new Marquer.Widgets.RightSelectDrive ();        
+        right_select_drive = new Marquer.Widgets.RightSelectDrive ();
         
         right_carousel = new Hdy.Carousel ();
         right_carousel.vexpand = true;
@@ -60,6 +60,10 @@ public class Marquer.MainWindow : Hdy.ApplicationWindow {
         
         right_carousel.add (right_select_disk);
         right_carousel.add (right_select_drive);
+        
+        right_select_disk.user_selection_completed.connect((signal_handler) => {
+            right_carousel.scroll_to (right_select_drive);
+        });        
         
         var carousel_indicator = new Hdy.CarouselIndicatorDots ();
         carousel_indicator.set_carousel(right_carousel);

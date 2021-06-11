@@ -22,6 +22,8 @@ public class Marquer.Widgets.RightSelectDisk : Gtk.Grid {
     private Granite.Widgets.WelcomeButton select_optic_file;
     private Granite.Widgets.WelcomeButton download_optic_file;    
     private Granite.Widgets.WelcomeButton close_app;
+    private string selected_ISO_uri = "";
+    public signal void user_selection_completed ();
         
     public RightSelectDisk () {
         Object ();        
@@ -37,7 +39,7 @@ public class Marquer.Widgets.RightSelectDisk : Gtk.Grid {
         download_file_icon.gicon = new ThemedIcon("emblem-downloads");
         
         var close_app_icon = new Gtk.Image();
-        close_app_icon.gicon = new ThemedIcon("process-stop");                
+        close_app_icon.gicon = new ThemedIcon("process-stop"); 
         
         select_optic_file = new Granite.Widgets.WelcomeButton (browse_file_icon, "Open Disk Image", "Choose an Existing Disk Image");
         download_optic_file = new Granite.Widgets.WelcomeButton (download_file_icon, "Download Disk Image", "Download a Disk Image from the Internet");        
@@ -64,5 +66,19 @@ public class Marquer.Widgets.RightSelectDisk : Gtk.Grid {
     
     private void browse_optic_file () {
         var ISOChooser = Marquer.Widgets.ISOChooser.instance; //Used instance to return new function, helps preventing multiple dialog opens
+        ISOChooser.show_ISO_chooser (selected_ISO_uri);
+        
+        ISOChooser.ISO_selected.connect((signal_handler, ISO_uri) => {
+            selected_ISO_uri = ISO_uri;
+            select_optic_file.title = "Disk Image Selected";
+            
+            if (selected_ISO_uri.length > 35) {
+                select_optic_file.description = "…" + selected_ISO_uri.substring (selected_ISO_uri.length - 35);                
+            } else {
+                select_optic_file.description = selected_ISO_uri;
+            }
+            
+            user_selection_completed ();                        
+        });
     }
 }

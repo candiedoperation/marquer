@@ -19,7 +19,12 @@
 */
 
 public class Marquer.Widgets.ISOChooser : Granite.Dialog {
-    static ISOChooser _instance = null;
+    private Gtk.FileChooserWidget file_browser;
+    private Gtk.Widget ISO_choose_button;
+    public signal void ISO_selected (string ISO_uri);
+            
+    private static ISOChooser _instance = null;
+    
     public static ISOChooser instance {
         get {
             if (_instance == null)
@@ -31,14 +36,23 @@ public class Marquer.Widgets.ISOChooser : Granite.Dialog {
     public ISOChooser () {
         Object (
             window_position: Gtk.WindowPosition.CENTER_ON_PARENT,
+            title: "ABC",
             width_request: 850,
             height_request: 600                      
         );
     }
     
-    construct {            
-        var file_browser = new Gtk.FileChooserWidget (Gtk.FileChooserAction.OPEN);
-        var dialog_header = new Granite.HeaderLabel ("Choose a Disk Image File");
+    construct {
+        var ISO_file_filter = new Gtk.FileFilter ();
+        ISO_file_filter.add_pattern ("*.iso");
+        ISO_file_filter.add_pattern ("*.img");
+                    
+        var dialog_header = new Granite.HeaderLabel ("Choose a Disk Image File");        
+        file_browser = new Gtk.FileChooserWidget (Gtk.FileChooserAction.OPEN);
+        file_browser.set_filter (ISO_file_filter);
+        file_browser.select_multiple = false;
+        file_browser.file_activated.connect (proceed_file_choosing);
+        file_browser.selection_changed.connect (check_mime_type);
         
         var browser_frame = new Gtk.Frame ("");
         browser_frame.get_label_widget ().destroy ();  
@@ -53,19 +67,40 @@ public class Marquer.Widgets.ISOChooser : Granite.Dialog {
         get_content_area ().add (grid_main);
         add_button ("Cancel", Gtk.ResponseType.CANCEL);
         
-        var suggested_button = add_button ("Select Disk Image", Gtk.ResponseType.ACCEPT);
-        suggested_button.get_style_context ().add_class (Gtk.STYLE_CLASS_SUGGESTED_ACTION);
+        ISO_choose_button = add_button ("Select Disk Image", Gtk.ResponseType.ACCEPT);
+        ISO_choose_button.sensitive = false;
+        ISO_choose_button.get_style_context ().add_class (Gtk.STYLE_CLASS_SUGGESTED_ACTION);
         
         response.connect (dialog_button_click);
-        
-        show_all ();
     }
     
     private void dialog_button_click (int response_id) {
         if (response_id == Gtk.ResponseType.ACCEPT) {
-            //DO SOMETHING
+            proceed_file_choosing ();
+        } else {
+            _instance = null;
+            destroy ();        
         }
+    }
+    
+    private void proceed_file_choosing () {
+        //GET URIs
+        ISO_selected (file_browser.get_uri ());
         
-        destroy ();        
+        _instance = null;
+        destroy ();
+    }
+    
+    private void check_mime_type () {
+        if (file_browser.get_filename ().has_suffix (".iso") || file_browser.get_filename ().has_suffix (".img")) {
+            ISO_choose_button.sensitive = true;
+        } else {
+            ISO_choose_button.sensitive = false;
+        }
+    }
+    
+    public void show_ISO_chooser (string existing_ISO_uri) {
+        file_browser.set_uri (existing_ISO_uri);            
+        show_all ();              
     }
 }
