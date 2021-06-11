@@ -1,0 +1,11 @@
+[Desktop Entry]
+Name=Marquer
+GenericName=Image Burner
+Comment=Flash Images, hassle-free
+Categories=Utility;System;Development;
+Exec=com.github.candiedoperation.marquer
+Icon=com.github.candiedoperation.marquer
+Terminal=false
+Type=Application
+Keywords=Flash;ISO;IMG;
+X-GNOME-UsesNotifications=true
