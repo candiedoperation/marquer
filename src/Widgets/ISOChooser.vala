@@ -99,7 +99,7 @@ public class Marquer.Widgets.ISOChooser : Granite.Dialog {
         }
     }
     
-    public void show_ISO_chooser (string existing_ISO_uri) {
+    public void show_ISO_chooser (string existing_ISO_uri = "") {
         file_browser.set_uri (existing_ISO_uri);            
         show_all ();              
     }

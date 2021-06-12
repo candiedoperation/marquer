@@ -25,9 +25,12 @@ public class Marquer.MainWindow : Hdy.ApplicationWindow {
     private Gtk.Grid right_grid;
     private Hdy.Carousel right_carousel;
     private Marquer.Widgets.LeftSelectDisk left_select_disk;
-    private Marquer.Widgets.LeftSelectDrive left_select_drive;    
+    private Marquer.Widgets.LeftSelectDrive left_select_drive;
+    private Marquer.Widgets.LeftStartFlash left_start_flash;    
     private Marquer.Widgets.RightSelectDisk right_select_disk;
     private Marquer.Widgets.RightSelectDrive right_select_drive;
+    private Marquer.Widgets.RightStartFlash right_start_flash;
+    private Marquer.Utils.VolatileDataStore volatile_data_store;   
 
     public MainWindow () {
         Object (
@@ -40,6 +43,8 @@ public class Marquer.MainWindow : Hdy.ApplicationWindow {
     }
 
     construct {
+        volatile_data_store = Marquer.Utils.VolatileDataStore.instance;
+        
         var granite_settings = Granite.Settings.get_default ();
         var gtk_settings = Gtk.Settings.get_default ();
 
@@ -49,10 +54,12 @@ public class Marquer.MainWindow : Hdy.ApplicationWindow {
         });
         
         left_select_disk = new Marquer.Widgets.LeftSelectDisk ();
-        left_select_drive = new Marquer.Widgets.LeftSelectDrive();        
+        left_select_drive = new Marquer.Widgets.LeftSelectDrive();
+        left_start_flash = new Marquer.Widgets.LeftStartFlash();                
         
         right_select_disk = new Marquer.Widgets.RightSelectDisk ();
         right_select_drive = new Marquer.Widgets.RightSelectDrive ();
+        right_start_flash = new Marquer.Widgets.RightStartFlash ();
         
         right_carousel = new Hdy.Carousel ();
         right_carousel.vexpand = true;
@@ -60,16 +67,32 @@ public class Marquer.MainWindow : Hdy.ApplicationWindow {
         
         right_carousel.add (right_select_disk);
         right_carousel.add (right_select_drive);
+        right_carousel.add (right_start_flash);
         
         right_select_disk.user_selection_completed.connect((signal_handler) => {
             right_carousel.scroll_to (right_select_drive);
-        });        
+        });
+        
+        right_start_flash.user_selection_completed.connect((signal_handler, goto_page) => {
+            switch (goto_page) {
+                case 0: {
+                    right_carousel.scroll_to (right_select_disk);
+                    break;
+                }
+                
+                case 1: {
+                    right_carousel.scroll_to (right_select_drive);
+                    break;
+                }
+            }
+        });                
         
         var carousel_indicator = new Hdy.CarouselIndicatorDots ();
         carousel_indicator.set_carousel(right_carousel);
         
         left_grid = new Gtk.Grid ();
         left_grid.vexpand = true;
+        left_grid.width_request = 280;
         left_grid.attach(left_select_disk, 0, 0);
         
         right_grid = new Gtk.Grid ();
@@ -104,6 +127,13 @@ public class Marquer.MainWindow : Hdy.ApplicationWindow {
                 show_all();
                 break;
             }
+            
+            case 2: {
+                left_grid.remove_row (0);
+                left_grid.attach (left_start_flash, 0, 0);
+                show_all();
+                break;
+            }            
         }
     }
 }

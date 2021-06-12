@@ -22,7 +22,8 @@ public class Marquer.Widgets.RightSelectDisk : Gtk.Grid {
     private Granite.Widgets.WelcomeButton select_optic_file;
     private Granite.Widgets.WelcomeButton download_optic_file;    
     private Granite.Widgets.WelcomeButton close_app;
-    private string selected_ISO_uri = "";
+    private Marquer.Utils.VolatileDataStore volatile_data_store;
+    //private string selected_ISO_uri = ""; Obsolete Variable
     public signal void user_selection_completed ();
         
     public RightSelectDisk () {
@@ -31,6 +32,7 @@ public class Marquer.Widgets.RightSelectDisk : Gtk.Grid {
     
     construct {
         //Initialize Elements
+        volatile_data_store = Marquer.Utils.VolatileDataStore.instance;
         
         var browse_file_icon = new Gtk.Image();
         browse_file_icon.gicon = new ThemedIcon("folder-open");
@@ -66,16 +68,21 @@ public class Marquer.Widgets.RightSelectDisk : Gtk.Grid {
     
     private void browse_optic_file () {
         var ISOChooser = Marquer.Widgets.ISOChooser.instance; //Used instance to return new function, helps preventing multiple dialog opens
-        ISOChooser.show_ISO_chooser (selected_ISO_uri);
+                
+        if (volatile_data_store.disk_information.length > 0) {
+            ISOChooser.show_ISO_chooser (volatile_data_store.disk_information);
+        } else {
+            ISOChooser.show_ISO_chooser ();
+        }
         
         ISOChooser.ISO_selected.connect((signal_handler, ISO_uri) => {
-            selected_ISO_uri = ISO_uri;
+            volatile_data_store.disk_information = ISO_uri;
             select_optic_file.title = "Disk Image Selected";
             
-            if (selected_ISO_uri.length > 35) {
-                select_optic_file.description = "…" + selected_ISO_uri.substring (selected_ISO_uri.length - 35);                
+            if (volatile_data_store.disk_information.length > 35) {
+                select_optic_file.description = "…" + volatile_data_store.disk_information.substring (volatile_data_store.disk_information.length - 35);                
             } else {
-                select_optic_file.description = selected_ISO_uri;
+                select_optic_file.description = volatile_data_store.disk_information;
             }
             
             user_selection_completed ();                        
