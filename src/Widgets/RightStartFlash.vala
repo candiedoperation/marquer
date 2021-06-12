@@ -19,16 +19,13 @@
 */
 
 public class Marquer.Widgets.RightStartFlash : Gtk.Grid {
-    private Gtk.Spinner wait_spinner;
-    private Gtk.Grid wait_grid; 
-    private Gtk.Label wait_label;
-    private Gtk.Grid insufficient_param_alert;
-    private Gtk.Label warning_label;
-    private Gtk.Label warning_description;
-    private Gtk.Image warning_logo;
-    private Gtk.Button warning_action_button;
+    private Marquer.Widgets.StartFlashWarning start_flash_warning;
+    private Marquer.Widgets.StartFlashWaiting start_flash_waiting;
     private Marquer.Utils.VolatileDataStore volatile_data_store;
     private Granite.MessageDialog confirmation_dialog;
+    private string drive_name = "";
+    private string drive_unix = "";
+    private string disk_path = "";
     public signal void user_selection_completed (int goto_page);
           
     public RightStartFlash () {
@@ -44,60 +41,23 @@ public class Marquer.Widgets.RightStartFlash : Gtk.Grid {
             } else if (volatile_data_store.drive_information.length == 0) {
                 show_drive_warning ();
             }  else {
-                show_waiting_status ();
+                show_waiting_status ("Waiting for Confirmation");
                 
                 Timeout.add (500, () => {
-                    initiate_flash_process (volatile_data_store.drive_name, volatile_data_store.drive_information, volatile_data_store.disk_information);
+                    drive_name = volatile_data_store.drive_name;
+                    drive_unix = volatile_data_store.drive_information; 
+                    disk_path = volatile_data_store.disk_information;
+                                
+                    initiate_flash_process ();
                     return false;
                 });                    
             }
-        });        
+        });
         
-        warning_label = new Gtk.Label ("Disk Image Not Selected");
-        warning_label.halign = Gtk.Align.START;
-        warning_label.get_style_context ().add_class (Granite.STYLE_CLASS_H2_LABEL);
+        start_flash_warning = new StartFlashWarning ("Disk Image Not Selected", "An operating system image is not selected", new ThemedIcon ("dialog-warning"), "Select Disk Image");
+        start_flash_warning.warning_action_button.clicked.connect (() => { print ("hellow"); });        
         
-        warning_description = new Gtk.Label ("An operating system image is not selected");
-        warning_description.halign = Gtk.Align.START;
-        warning_description.get_style_context ().add_class (Granite.STYLE_CLASS_H3_LABEL);
-        
-        var warning_grid = new Gtk.Grid ();
-        warning_grid.attach (warning_label, 0, 0);
-        warning_grid.attach (warning_description, 0, 1);
-        
-        warning_logo = new Gtk.Image ();
-        warning_logo.gicon = new ThemedIcon ("dialog-warning");
-        warning_logo.pixel_size = 48;
-        
-        warning_action_button = new Gtk.Button ();
-        warning_action_button.get_style_context ().add_class (Gtk.STYLE_CLASS_SUGGESTED_ACTION);
-        warning_action_button.label = "Select Disk Image";
-        warning_action_button.halign = Gtk.Align.END;
-        warning_action_button.clicked.connect (() =>{ user_selection_completed (0); }); 
-        
-        insufficient_param_alert = new Gtk.Grid ();
-        insufficient_param_alert.column_spacing = 10;
-        insufficient_param_alert.row_spacing = 10;
-        insufficient_param_alert.attach (warning_logo, 0, 0);
-        insufficient_param_alert.attach (warning_grid, 1, 0);
-        insufficient_param_alert.attach (warning_action_button, 1, 1);
-        
-        wait_spinner = new Gtk.Spinner ();
-        wait_spinner.height_request = 48;
-        wait_spinner.width_request = 48;
-        wait_spinner.start ();
-        
-        wait_label = new Gtk.Label ("Waiting for Confirmation");
-        wait_label.get_style_context ().add_class (Granite.STYLE_CLASS_H2_LABEL);
-        
-        wait_grid = new Gtk.Grid ();
-        wait_grid.hexpand = true;
-        wait_grid.vexpand = true;
-        wait_grid.column_spacing = 10;
-        wait_grid.halign = Gtk.Align.CENTER;
-        wait_grid.valign = Gtk.Align.CENTER;
-        wait_grid.attach (wait_spinner, 0, 0);
-        wait_grid.attach (wait_label, 1, 0);
+        start_flash_waiting = new Marquer.Widgets.StartFlashWaiting ("Waiting for Confirmation");
         
         this.vexpand = true;
         this.hexpand = true;
@@ -106,62 +66,54 @@ public class Marquer.Widgets.RightStartFlash : Gtk.Grid {
         this.halign = Gtk.Align.CENTER;
                 
         //Attach Elements to Grid
-        attach (insufficient_param_alert, 0, 0);
-    }
-    
-    private void swap_wait_grid (int grid_id) {
-        switch (grid_id) {
-            case 0: {
-                wait_label.label = "Waiting for Confirmation";
-                break;
-            }
-            
-            case 1: {
-                wait_label.label = "Waiting for Authentication";
-                break;
-            }            
-        }
+        attach (start_flash_warning, 0, 0);
     }
     
     private void show_disk_warning () {
+        start_flash_warning.purge ();
+        start_flash_warning = new StartFlashWarning ("Disk Image Not Selected", "An operating system image is not selected", new ThemedIcon ("dialog-warning"), "Select Disk Image");
+        start_flash_warning.warning_action_button.clicked.connect (() => { user_selection_completed (0); });
+                
         remove_row (0);
-        attach (insufficient_param_alert, 0, 0);
-            
-        warning_label.label = "Disk Image Not Selected";
-        warning_description.label = "An operating system image is not selected";
-        warning_logo.gicon = new ThemedIcon ("dialog-warning");        
-        warning_action_button.label = "Select Disk Image";
-        warning_action_button.clicked.connect (() =>{ user_selection_completed (0); });
+        attach (start_flash_warning, 0, 0);
     }
     
     private void show_drive_warning () {
-        remove_row (0);
-        attach (insufficient_param_alert, 0, 0);
+        start_flash_warning.purge ();
+        start_flash_warning = new StartFlashWarning ("Flash Drive Not Selected", "Boot Media Drive is not selected", new ThemedIcon ("dialog-warning"), "Select Flash Drive");
+        start_flash_warning.warning_action_button.clicked.connect (() => { user_selection_completed (1); });
                 
-        warning_label.label = "Flash Drive Not Selected";
-        warning_description.label = "A Bootable Media Drive is not selected";
-        warning_logo.gicon = new ThemedIcon ("dialog-warning");        
-        warning_action_button.label = "Select Flash Drive";
-        warning_action_button.clicked.connect (() =>{ user_selection_completed (1); });
+        remove_row (0);
+        attach (start_flash_warning, 0, 0);        
     }
     
     private void show_cancelled_page () {
-        remove_row (0);
-        attach (insufficient_param_alert, 0, 0);
+        start_flash_warning.purge ();
+        start_flash_warning = new StartFlashWarning ("Flash Operation Cancelled", "You have cancelled the flash operation", new ThemedIcon ("dialog-error"), "Go Back");
+        start_flash_warning.warning_action_button.clicked.connect (() => { user_selection_completed (0); });
                 
-        warning_label.label = "Flash Operation Cancelled";
-        warning_description.label = "You have cancelled the flash operation";
-        warning_logo.gicon = new ThemedIcon ("dialog-error");
-        warning_action_button.label = "Go Back";
-        warning_action_button.clicked.connect (() =>{ user_selection_completed (0); });
+        remove_row (0);
+        attach (start_flash_warning, 0, 0);        
     }    
     
-    private void show_waiting_status () {
+    private void show_authentication_failed () {        
+        start_flash_warning.purge ();
+        start_flash_warning = new StartFlashWarning ("Authentication Failed", "Authentication required to Write Image to Flash Drive", new ThemedIcon ("dialog-error"), "Reauthenticate");
+        start_flash_warning.warning_action_button.clicked.connect (() => { start_flash_process (); });
+                
         remove_row (0);
-        attach (wait_grid, 0, 0);
+        attach (start_flash_warning, 0, 0);                 
+    }    
+    
+    private void show_waiting_status (string status) {
+        start_flash_waiting.purge ();
+        start_flash_waiting = new Marquer.Widgets.StartFlashWaiting (status);
+        
+        remove_row (0);
+        attach (start_flash_waiting, 0, 0);
     }
     
-    private void initiate_flash_process (string drive_name, string drive_unix, string disk_path) {        
+    private void initiate_flash_process () {        
         confirmation_dialog = new Granite.MessageDialog.with_image_from_icon_name (
             "All Data in " + drive_name + " will be ERASED",
             "<b>" + drive_name + "</b> will be <b>ERASED</b> and <b>" + disk_path.substring (disk_path.last_index_of("/") + 1) + "</b> will be written in the drive. Are you sure?",
@@ -176,7 +128,7 @@ public class Marquer.Widgets.RightStartFlash : Gtk.Grid {
         confirmation_dialog.response.connect ((response_id) => {
            if (response_id == Gtk.ResponseType.ACCEPT) {
                //GET AUTH AND START FLASH
-               start_flash_process (drive_name, drive_unix, disk_path);
+               start_flash_process ();
                confirmation_dialog.destroy ();
            } else {
                 volatile_data_store.drive_information = "";
@@ -189,12 +141,80 @@ public class Marquer.Widgets.RightStartFlash : Gtk.Grid {
         });
         
         confirmation_dialog.badge_icon = new ThemedIcon ("dialog-warning");        
-        
         confirmation_dialog.show_all ();
     }
     
-    private void start_flash_process (string drive_name, string drive_unix, string disk_path) {
+    private void start_flash_process () {
         user_selection_completed (-1);
-        swap_wait_grid (1);
-    }    
+        show_waiting_status ("Waiting for Authentication");
+        connect_flash_process_channel ();
+    }
+    
+    private void connect_flash_process_channel () {
+        try {
+            string[] spawn_args = {"pkexec", "--user", "root", "ping", "8.8.8.8"};
+            string[] spawn_env = Environ.get ();
+            Pid child_pid;
+
+            int standard_input;
+            int standard_output;
+            int standard_error;
+
+            Process.spawn_async_with_pipes ("/",
+                spawn_args,
+                spawn_env,
+                SpawnFlags.SEARCH_PATH | SpawnFlags.DO_NOT_REAP_CHILD,
+                null,
+                out child_pid,
+                out standard_input,
+                out standard_output,
+                out standard_error);
+
+            // stdout:
+            IOChannel output = new IOChannel.unix_new (standard_output);
+            output.add_watch (IOCondition.IN | IOCondition.HUP, (channel, condition) => {
+                return process_line (channel, condition, "stdout");
+            });
+
+            // stderr:
+            IOChannel error = new IOChannel.unix_new (standard_error);
+            error.add_watch (IOCondition.IN | IOCondition.HUP, (channel, condition) => {                     
+                return process_line (channel, condition, "stderr");                   
+            });
+
+            ChildWatch.add (child_pid, (pid, status) => {
+                // Triggered when the child indicated by child_pid exits
+                Process.close_pid (pid);                    
+            });
+            
+        } catch (SpawnError e) {
+            print ("Error: %s\n", e.message);
+        }        
+    }
+    
+    private bool process_line (IOChannel channel, IOCondition condition, string stream_name) {
+        if (condition == IOCondition.HUP) {
+            print ("%s: Connection Broken.\n", stream_name);
+            return false;
+        }
+
+        try {
+            string line;
+            channel.read_line (out line, null, null);
+            
+            if ("Request dismissed" in line) {
+                show_authentication_failed ();
+            }
+            
+            print ("%s: %s", stream_name, line);
+        } catch (IOChannelError e) {
+            print ("%s: IOChannelError: %s\n", stream_name, e.message);
+            return false;
+        } catch (ConvertError e) {
+            print ("%s: ConvertError: %s\n", stream_name, e.message);
+            return false;
+        }
+
+        return true;
+    }   
 }

@@ -13,6 +13,8 @@ executable(
     'src/Widgets/RightSelectDrive.vala',
     'src/Widgets/RightStartFlash.vala',
     'src/Widgets/DriveListRowItem.vala',
+    'src/Widgets/StartFlashWarning.vala',
+    'src/Widgets/StartFlashWaiting.vala',
     'src/Widgets/ISOChooser.vala',        
     'src/Utils/DriveManager.vala',
     'src/Utils/VolatileDataStore.vala',          
