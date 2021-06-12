@@ -21,19 +21,30 @@
 public class Marquer.Widgets.RightSelectDrive : Gtk.Grid {
     private Gtk.ListBox drive_list;
     private Gtk.Frame drive_frame;
-    private Gtk.ListBoxRow drive_list_row;
     private Gtk.ScrolledWindow drive_list_parent;
     private Marquer.Utils.DriveManager drive_manager;
+    private Marquer.Utils.VolatileDataStore volatile_data_store;
+    public signal void user_selection_completed ();
         
     public RightSelectDrive () {
         Object ();        
     }
     
     construct {               
-        //Initialize Elements 
+        //Initialize Elements
+        volatile_data_store = Marquer.Utils.VolatileDataStore.instance;
+         
         drive_list = new Gtk.ListBox ();
+        drive_list.selection_mode = Gtk.SelectionMode.BROWSE;
         drive_list.hexpand = true;
         drive_list.vexpand = true;
+        
+        drive_list.row_activated.connect((selected_disk_row) => {
+            volatile_data_store.drive_information = volatile_data_store.connected_drives.get_object_member ("drive-data-" + (selected_disk_row.get_index () + 1).to_string ()).get_string_member ("drive-unix-id"); //Adding 1 as List Length starts from 'one'
+            volatile_data_store.drive_name = volatile_data_store.connected_drives.get_object_member ("drive-data-" + (selected_disk_row.get_index () + 1).to_string ()).get_string_member ("drive-name");
+            
+            user_selection_completed ();
+        });      
         
         drive_list_parent = new Gtk.ScrolledWindow (null, null);
         drive_list_parent.hscrollbar_policy = Gtk.PolicyType.NEVER;
@@ -63,10 +74,7 @@ public class Marquer.Widgets.RightSelectDrive : Gtk.Grid {
     
     private void update_drive_list (List<Drive> connected_drives) {
         drive_list.foreach((existing_drive) => { existing_drive.destroy (); });
-        connected_drives.foreach((drive) => {
-            //print (drive.get_identifier (DRIVE_IDENTIFIER_KIND_UNIX_DEVICE) + "\n");
-            print (drive.has_media ().to_string () + "\n");
-            
+        connected_drives.foreach((drive) => {            
             var drive_label = drive.get_identifier (DRIVE_IDENTIFIER_KIND_UNIX_DEVICE);
             var drive_icon = drive.get_icon();
             
@@ -74,7 +82,14 @@ public class Marquer.Widgets.RightSelectDrive : Gtk.Grid {
                 drive_icon = new ThemedIcon ("media-flash");
             }
                                                     
-            drive_list.insert(new Marquer.Widgets.DriveListRowItem (drive.get_name (), drive_label, drive.is_removable (), drive_icon), -1);            
+            drive_list.insert(new Marquer.Widgets.DriveListRowItem (drive.get_name (), drive_label, drive.is_removable (), drive_icon), -1);
+            
+            var drive_data = new Json.Object ();
+            drive_data.set_string_member ("drive-name", drive.get_name ());
+            drive_data.set_string_member ("drive-unix-id", drive_label);
+            
+            volatile_data_store.connected_drives.set_object_member ("drive-data-" + drive_list.get_children ().length ().to_string (), drive_data);            
         });
     }
+
 }

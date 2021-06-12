@@ -18,7 +18,7 @@
     Authored By: Atheesh Thirumalairajan <candiedoperation@icloud.com>
 */
 
-public class Marquer.Widgets.DriveListRowItem : Gtk.ListBoxRow {        
+public class Marquer.Widgets.DriveListRowItem : Gtk.ListBoxRow {
     public DriveListRowItem (string drive_name, string drive_info, bool is_removable_drive, Icon drive_icon) {
         Object ();
         
@@ -55,6 +55,6 @@ public class Marquer.Widgets.DriveListRowItem : Gtk.ListBoxRow {
     }
     
     construct {
-                       
+                         
     }
 }

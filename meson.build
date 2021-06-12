@@ -19,7 +19,8 @@ executable(
     dependencies: [
         dependency('gtk+-3.0'),
         dependency('granite'),
-        dependency('libhandy-1')
+        dependency('libhandy-1'),
+        dependency('json-glib-1.0')
     ],
     install: true
 )
