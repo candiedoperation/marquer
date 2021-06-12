@@ -70,11 +70,19 @@ public class Marquer.MainWindow : Hdy.ApplicationWindow {
         right_carousel.add (right_start_flash);
         
         right_select_disk.user_selection_completed.connect((signal_handler) => {
-            right_carousel.scroll_to (right_select_drive);
+            if (volatile_data_store.drive_information == "") {
+                right_carousel.scroll_to (right_select_drive);                
+            } else {
+                right_carousel.scroll_to (right_start_flash);
+            }
         });
         
         right_select_drive.user_selection_completed.connect((signal_handler) => {
-            right_carousel.scroll_to (right_start_flash);
+            if (volatile_data_store.disk_information == "") {
+                right_carousel.scroll_to (right_select_disk);
+            } else {
+                right_carousel.scroll_to (right_start_flash);
+            }
         });
         
         right_start_flash.user_selection_completed.connect((signal_handler, goto_page) => {
@@ -86,6 +94,11 @@ public class Marquer.MainWindow : Hdy.ApplicationWindow {
                 
                 case 1: {
                     right_carousel.scroll_to (right_select_drive);
+                    break;
+                }
+                
+                case 2: {
+                    right_carousel.scroll_to (right_start_flash);
                     break;
                 }
             }

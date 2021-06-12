@@ -33,6 +33,11 @@ public class Marquer.Widgets.RightSelectDrive : Gtk.Grid {
     construct {               
         //Initialize Elements
         volatile_data_store = Marquer.Utils.VolatileDataStore.instance;
+        volatile_data_store.notify.connect((signal_handler, signal_data) => {
+            if (volatile_data_store.drive_information == "") {
+                drive_list.unselect_all ();
+            }
+        });        
          
         drive_list = new Gtk.ListBox ();
         drive_list.selection_mode = Gtk.SelectionMode.BROWSE;

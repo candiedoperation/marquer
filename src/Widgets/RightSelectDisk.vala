@@ -23,7 +23,6 @@ public class Marquer.Widgets.RightSelectDisk : Gtk.Grid {
     private Granite.Widgets.WelcomeButton download_optic_file;    
     private Granite.Widgets.WelcomeButton close_app;
     private Marquer.Utils.VolatileDataStore volatile_data_store;
-    //private string selected_ISO_uri = ""; Obsolete Variable
     public signal void user_selection_completed ();
         
     public RightSelectDisk () {
@@ -33,6 +32,12 @@ public class Marquer.Widgets.RightSelectDisk : Gtk.Grid {
     construct {
         //Initialize Elements
         volatile_data_store = Marquer.Utils.VolatileDataStore.instance;
+        volatile_data_store.notify.connect((signal_handler, signal_data) => {
+            if (volatile_data_store.disk_information == "") {
+                select_optic_file.title = "Open Disk Image";
+                select_optic_file.description = "Choose an Existing Disk Image";
+            }
+        });
         
         var browse_file_icon = new Gtk.Image();
         browse_file_icon.gicon = new ThemedIcon("folder-open");

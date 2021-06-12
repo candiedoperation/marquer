@@ -21,7 +21,10 @@
 public class Marquer.Utils.VolatileDataStore : GLib.Object {
     public string disk_information { get; set; default = ""; }
     public string drive_information { get; set; default = ""; }
-    public string drive_name { get; set; default = ""; }
+    
+    [CCode(notify=false)]
+    public string drive_name { get; set; default = ""; }    
+    public bool is_flash_cancelled { get; set; default = false; }
     public Json.Object connected_drives;
     
     private static VolatileDataStore _instance = null;
@@ -32,7 +35,7 @@ public class Marquer.Utils.VolatileDataStore : GLib.Object {
                 _instance = new VolatileDataStore ();
                 return _instance;
         }
-    }    
+    } 
       
     public VolatileDataStore () {
         connected_drives = new Json.Object ();
