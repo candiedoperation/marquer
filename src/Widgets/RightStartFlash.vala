@@ -169,9 +169,14 @@ public class Marquer.Widgets.RightStartFlash : Gtk.Grid {
             Gtk.ButtonsType.CANCEL
         );
         
+        var proceed_flash_button = new Gtk.Button.with_label ("Start Flashing");
+        proceed_flash_button.get_style_context ().add_class (Gtk.STYLE_CLASS_DESTRUCTIVE_ACTION);
+        confirmation_dialog.add_action_widget (proceed_flash_button, Gtk.ResponseType.ACCEPT);        
+        
         confirmation_dialog.response.connect ((response_id) => {
            if (response_id == Gtk.ResponseType.ACCEPT) {
                //GET AUTH AND START FLASH
+               start_flash_process (drive_name, drive_unix, disk_path);
                confirmation_dialog.destroy ();
            } else {
                 volatile_data_store.drive_information = "";
@@ -186,5 +191,10 @@ public class Marquer.Widgets.RightStartFlash : Gtk.Grid {
         confirmation_dialog.badge_icon = new ThemedIcon ("dialog-warning");        
         
         confirmation_dialog.show_all ();
+    }
+    
+    private void start_flash_process (string drive_name, string drive_unix, string disk_path) {
+        user_selection_completed (-1);
+        swap_wait_grid (1);
     }    
 }

@@ -87,6 +87,11 @@ public class Marquer.MainWindow : Hdy.ApplicationWindow {
         
         right_start_flash.user_selection_completed.connect((signal_handler, goto_page) => {
             switch (goto_page) {
+                case -1: {
+                    right_carousel.interactive = false;
+                    break;
+                }
+                
                 case 0: {
                     right_carousel.scroll_to (right_select_disk);
                     break;
