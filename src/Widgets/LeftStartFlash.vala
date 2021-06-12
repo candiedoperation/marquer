@@ -28,10 +28,10 @@ public class Marquer.Widgets.LeftStartFlash : Gtk.Grid {
     }
     
     construct {
-        panel_left_title = new Gtk.Label("Start Flashing");
+        panel_left_title = new Gtk.Label("Flash Image");
         panel_left_title.get_style_context ().add_class (Granite.STYLE_CLASS_H1_LABEL);
         
-        panel_left_subtitle = new Gtk.Label("Start the Boot Media Creation Process");
+        panel_left_subtitle = new Gtk.Label("Create a Bootable Media Device");
         panel_left_subtitle.get_style_context ().add_class (Granite.STYLE_CLASS_H3_LABEL);
         
         panel_left_image = new Gtk.Image(); 

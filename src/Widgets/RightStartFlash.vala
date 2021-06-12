@@ -55,7 +55,7 @@ public class Marquer.Widgets.RightStartFlash : Gtk.Grid {
         });
         
         start_flash_warning = new StartFlashWarning ("Disk Image Not Selected", "An operating system image is not selected", new ThemedIcon ("dialog-warning"), "Select Disk Image");
-        start_flash_warning.warning_action_button.clicked.connect (() => { print ("hellow"); });        
+        start_flash_warning.warning_action_button.clicked.connect (() => { user_selection_completed (0); });        
         
         start_flash_waiting = new Marquer.Widgets.StartFlashWaiting ("Waiting for Confirmation");
         
@@ -201,12 +201,16 @@ public class Marquer.Widgets.RightStartFlash : Gtk.Grid {
         try {
             string line;
             channel.read_line (out line, null, null);
+            print ("%s: %s", stream_name, line);
             
-            if ("Request dismissed" in line) {
-                show_authentication_failed ();
+            if (stream_name == "stderr") {
+                if ("Request dismissed" in line) {
+                    show_authentication_failed ();
+                } else {
+                    //SHOW PROCESS FAILED
+                }                
             }
             
-            print ("%s: %s", stream_name, line);
         } catch (IOChannelError e) {
             print ("%s: IOChannelError: %s\n", stream_name, e.message);
             return false;

@@ -12,6 +12,7 @@ executable(
     'src/Widgets/RightSelectDisk.vala',
     'src/Widgets/RightSelectDrive.vala',
     'src/Widgets/RightStartFlash.vala',
+    'src/Widgets/RightFlashingProgress.vala',    
     'src/Widgets/DriveListRowItem.vala',
     'src/Widgets/StartFlashWarning.vala',
     'src/Widgets/StartFlashWaiting.vala',
