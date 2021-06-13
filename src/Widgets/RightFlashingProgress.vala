@@ -47,10 +47,18 @@ public class Marquer.Widgets.RightFlashingProgress : Gtk.Grid {
         flashing_progress.hexpand = true;
         
         terminal = new Gtk.TextView ();
+        terminal.set_top_margin (5);
+        terminal.set_bottom_margin (5);
+        terminal.set_right_margin (5);
+        terminal.set_left_margin (5);
         terminal.editable = false;
         terminal.hexpand = true;
-        //terminal.buffer.insert ("ABC"); ERROR
+        terminal.buffer.text = "Console Pipe Output:";
         terminal.get_style_context ().add_class (Granite.STYLE_CLASS_TERMINAL);
+        
+        var terminal_parent = new Gtk.ScrolledWindow (null, null);
+        terminal_parent.height_request = 300;
+        terminal_parent.add (terminal);        
         
         var terminal_expand = new Gtk.Expander ("Technical Information");
         terminal_expand.margin_top = 10;
@@ -60,7 +68,6 @@ public class Marquer.Widgets.RightFlashingProgress : Gtk.Grid {
         progress_grid.vexpand = true;
         progress_grid.row_spacing = 5;
         progress_grid.column_spacing = 10;
-        //progress_grid.halign = Gtk.Align.CENTER;
         progress_grid.valign = Gtk.Align.CENTER;
         
         progress_grid.attach (title_label, 0, 0);
@@ -71,11 +78,11 @@ public class Marquer.Widgets.RightFlashingProgress : Gtk.Grid {
         terminal_expand.activate.connect(() => {
             if (terminal_expand.expanded == true) {
                 //Hide terminal
-                progress_grid.remove (terminal);
+                progress_grid.remove (terminal_parent);
                 show_all ();
             } else {
                 //Show terminal
-                progress_grid.attach (terminal, 0, 4);
+                progress_grid.attach (terminal_parent, 0, 4);
                 show_all ();
             }
         });                        
