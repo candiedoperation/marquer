@@ -85,7 +85,7 @@ public class Marquer.Widgets.ISOChooser : Granite.Dialog {
     
     private void proceed_file_choosing () {
         //GET URIs
-        ISO_selected (file_browser.get_uri ());
+        ISO_selected (file_browser.get_filename ());
         
         _instance = null;
         destroy ();

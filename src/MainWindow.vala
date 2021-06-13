@@ -119,11 +119,8 @@ public class Marquer.MainWindow : Hdy.ApplicationWindow {
         
         right_grid = new Gtk.Grid ();
         right_grid.vexpand = true;
-        //right_grid.attach(right_carousel, 0, 0);
+        right_grid.attach(right_carousel, 0, 0);
         right_grid.attach(carousel_indicator, 0, 1);
-        
-        var tmp_grid = new Marquer.Widgets.RightFlashingProgress (); //REMOVE IN PRODUCTION        
-        right_grid.attach(tmp_grid, 0, 0); //REMOVE IN PRODUCTION                        
         
         grid_main = new Gtk.Grid();
         grid_main.margin = 12;
