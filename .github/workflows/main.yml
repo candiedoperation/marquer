@@ -1,0 +1,33 @@
+name: CI
+
+# This workflow will run for any pull request or pushed commit
+on: [push, pull_request]
+
+# A workflow run is made up of one or more jobs that can run sequentially or in parallel
+jobs:
+  # This workflow contains a single job called "flatpak"
+  flatpak:
+    # The type of runner that the job will run on
+    runs-on: ubuntu-latest
+
+    # This job runs in a special container designed for building Flatpaks
+    container:
+      image: docker.io/bilelmoussaoui/flatpak-github-actions
+      options: --privileged
+
+    # Steps represent a sequence of tasks that will be executed as part of the job
+    steps:
+      # Checks-out your repository under $GITHUB_WORKSPACE, so the job can access it
+    - uses: actions/checkout@v2
+
+      # Builds your flatpak manifest using the Flatpak Builder action
+    - uses: bilelmoussaoui/flatpak-github-actions@master
+      with:
+        # This uses your app's RDNN ID
+        bundle: "com.github.candiedoperation.marquer.flatpak"
+        manifest-path: "com.github.candiedoperation.marquer.yml"
+
+        # These lines specify the location of the elementary Runtime and Sdk
+        repository-name: "elementary"
+        repository-url: "https://flatpak.elementary.io/elementary.flatpakrepo"
+        cache-key: "flatpak-builder-${{ github.sha }}"
