@@ -162,23 +162,21 @@ public class Marquer.Widgets.RightStartFlash : Gtk.Grid {
     
     private void start_flash_process () {
         user_selection_completed (-1);
-        show_waiting_status ("Waiting for Authentication");
+        show_waiting_status ("Unmounting Drives");
         Timeout.add (500, () => {
-            connect_flash_process_channel ();
-            return false;
+            drive_manager.unmount_volumes (drive_unix);
+        
+            show_waiting_status ("Waiting for Authentication");
+            Timeout.add (500, () => {
+                connect_flash_process_channel ();
+                return false;
+            });            
         });
     }
     
-    private void connect_flash_process_channel (bool umount = true) {
+    private void connect_flash_process_channel () {
         try {
-            string[] spawn_args = {};
-            
-            if (umount == true) {
-                spawn_args = {"pkexec", "--user", "root", "apt-get", "update"};
-            } else {
-                spawn_args = {"pkexec", "--user", "root", "apt-get", "upgrade"};
-            }
-            
+            string[] spawn_args = {"pkexec", "--user", "root", "dd", "bs=8M", "if=" + disk_path, "of=" + drive_unix, "conv=fdatasync", "status=progress"};
             string[] spawn_env = Environ.get ();
             Pid child_pid;
 
@@ -238,7 +236,7 @@ public class Marquer.Widgets.RightStartFlash : Gtk.Grid {
             } else if (stream_name == "stdout") {
                 if ("Marquer Connection Broken" in line) {
                     //SHOW SUCCESS
-                } else if () {
+                } else if (0 == 1) {
                     //CHK FOR UMOUNT OPUT
                 } else {
                     update_flashing_progress ("0% (0 MB/s)", line, 0.2);

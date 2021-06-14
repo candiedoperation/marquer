@@ -41,4 +41,18 @@ public class Marquer.Utils.DriveManager : GLib.Object {
     public void get_connected_drives () {
         drive_list_update (device_manager.get_connected_drives ());
     }
+    
+    public void unmount_volumes (string drive_unix) {
+        device_manager.get_mounts ().foreach ((mount) => {
+            if (mount.get_drive ().get_identifier (GLib.DRIVE_IDENTIFIER_KIND_UNIX_DEVICE) == drive_unix) {
+                //Mount matches with selected drive
+                try {
+                    GLib.MountOperation unmount_operation = new GLib.MountOperation (); 
+                    mount.unmount_with_operation (GLib.MountUnmountFlags.FORCE, unmount_operation);                    
+                } catch (GLib.Error mount_error) {
+                    //DRIVE UNMOUNT FAILED
+                }
+            }
+        });
+    }
 }
