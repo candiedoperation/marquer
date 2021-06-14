@@ -87,6 +87,11 @@ public class Marquer.Widgets.RightFlashingProgress : Gtk.Grid {
             }
         });                        
         
+        this.vexpand = true;
+        this.hexpand = true;
+        this.width_request = 500;        
+        this.row_spacing = 6;        
+        
         add (progress_grid);
         show_all ();
     }

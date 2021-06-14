@@ -21,7 +21,9 @@
 public class Marquer.Widgets.RightStartFlash : Gtk.Grid {
     private Marquer.Widgets.StartFlashWarning start_flash_warning;
     private Marquer.Widgets.StartFlashWaiting start_flash_waiting;
+    private Marquer.Widgets.RightFlashingProgress flashing_progress_widget;
     private Marquer.Utils.VolatileDataStore volatile_data_store;
+    private Marquer.Utils.DriveManager drive_manager;
     private Granite.MessageDialog confirmation_dialog;
     private string drive_name = "";
     private string drive_unix = "";
@@ -34,6 +36,7 @@ public class Marquer.Widgets.RightStartFlash : Gtk.Grid {
     
     construct {
         volatile_data_store = Marquer.Utils.VolatileDataStore.instance;
+        drive_manager = new Marquer.Utils.DriveManager ();
         
         volatile_data_store.notify.connect ((signal_handler, signal_data) => {
             if (volatile_data_store.disk_information.length == 0) {
@@ -53,6 +56,8 @@ public class Marquer.Widgets.RightStartFlash : Gtk.Grid {
                 });                    
             }
         });
+        
+        flashing_progress_widget = new Marquer.Widgets.RightFlashingProgress ();
         
         start_flash_warning = new StartFlashWarning ("Disk Image Not Selected", "An operating system image is not selected", new ThemedIcon ("dialog-warning"), "Select Disk Image");
         start_flash_warning.warning_action_button.clicked.connect (() => { user_selection_completed (0); });        
@@ -100,9 +105,22 @@ public class Marquer.Widgets.RightStartFlash : Gtk.Grid {
         start_flash_warning.purge ();
         start_flash_warning = new StartFlashWarning ("Authentication Failed", "Authentication required to Write Image to Flash Drive", new ThemedIcon ("dialog-error"), "Reauthenticate");
         start_flash_warning.warning_action_button.clicked.connect (() => { start_flash_process (); });
-                
+        
         remove_row (0);
         attach (start_flash_warning, 0, 0);                 
+    }
+    
+    private void update_flashing_progress (string description, string terminal_text, double progress) {        
+        this.get_children ().foreach ((child) => {
+            if ((child != flashing_progress_widget)) {
+                remove_row (0);
+                attach (flashing_progress_widget, 0, 0);                
+            }
+        });
+            
+        flashing_progress_widget.description_label.label = description;
+        flashing_progress_widget.flashing_progress.fraction = progress;
+        flashing_progress_widget.terminal.buffer.text += ("\n" + terminal_text);
     }    
     
     private void show_waiting_status (string status) {
@@ -116,7 +134,7 @@ public class Marquer.Widgets.RightStartFlash : Gtk.Grid {
     private void initiate_flash_process () {        
         confirmation_dialog = new Granite.MessageDialog.with_image_from_icon_name (
             "All Data in " + drive_name + " will be ERASED",
-            "<b>" + drive_name + "</b> will be <b>ERASED</b> and <b>" + disk_path.substring (disk_path.last_index_of("/") + 1) + "</b> will be written in the drive. Are you sure?",
+            "<b>" + drive_name + " (" + drive_unix + ") </b> will be <b>ERASED</b> and <b>" + disk_path.substring (disk_path.last_index_of("/") + 1) + "</b> will be written in the drive. Are you sure?",
             "drive-removable-media",
             Gtk.ButtonsType.CANCEL
         );
@@ -146,13 +164,27 @@ public class Marquer.Widgets.RightStartFlash : Gtk.Grid {
     
     private void start_flash_process () {
         user_selection_completed (-1);
-        show_waiting_status ("Waiting for Authentication");
-        connect_flash_process_channel ();
+        show_waiting_status ("Unmounting Drives");
+        
+        drive_manager.unmount_operations.connect ((signal_handler) => {
+            show_waiting_status ("Waiting for Authentication");
+            
+            try {
+                Thread.create<void*> (connect_flash_process_channel, false);
+            } catch (ThreadError e) {
+                
+            }              
+        }); 
+               
+        Timeout.add (500, () => {
+            drive_manager.unmount_volumes (drive_unix);            
+            return false;            
+        });
     }
     
-    private void connect_flash_process_channel () {
+    private void* connect_flash_process_channel () {
         try {
-            string[] spawn_args = {"pkexec", "--user", "root", "ping", "8.8.8.8"};
+            string[] spawn_args = {"pkexec", "--user", "root", "dd", "bs=8M", "if=" + disk_path, "of=" + drive_unix, "conv=fdatasync", "status=progress"};
             string[] spawn_env = Environ.get ();
             Pid child_pid;
 
@@ -189,12 +221,14 @@ public class Marquer.Widgets.RightStartFlash : Gtk.Grid {
             
         } catch (SpawnError e) {
             print ("Error: %s\n", e.message);
-        }        
+        }         
+        
+        return null;
     }
     
     private bool process_line (IOChannel channel, IOCondition condition, string stream_name) {
         if (condition == IOCondition.HUP) {
-            print ("%s: Connection Broken.\n", stream_name);
+            print ("%s: Marquer Connection Broken\n", stream_name);
             return false;
         }
 
@@ -203,13 +237,15 @@ public class Marquer.Widgets.RightStartFlash : Gtk.Grid {
             channel.read_line (out line, null, null);
             print ("%s: %s", stream_name, line);
             
-            if (stream_name == "stderr") {
-                if ("Request dismissed" in line) {
-                    show_authentication_failed ();
-                } else {
-                    //SHOW PROCESS FAILED
-                }                
-            }
+            if ("Request dismissed" in line) {
+                show_authentication_failed ();
+            } else if ("records in" in line || "records out" in line) {
+                //FLASHING COMPLETE
+            } else if ("bytes" in line && "copied" in line) {
+                update_flashing_progress (line.substring (line.last_index_of (",") + 2), line, 0.2);
+            } else {
+                //FLASHING FAILED
+            } 
             
         } catch (IOChannelError e) {
             print ("%s: IOChannelError: %s\n", stream_name, e.message);
