@@ -21,6 +21,7 @@
 public class Marquer.Utils.DriveManager : GLib.Object {
     private GLib.VolumeMonitor device_manager;
     public signal void drive_list_update (List<Drive> drive_list);
+    public signal void unmount_operations ();
     
     public DriveManager () {
                         
@@ -54,5 +55,8 @@ public class Marquer.Utils.DriveManager : GLib.Object {
                 }
             }
         });
+        
+        //DRIVE UNMOUNT COMPLETED
+        unmount_operations ();
     }
 }

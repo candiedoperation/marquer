@@ -23,6 +23,7 @@ public class Marquer.Widgets.RightStartFlash : Gtk.Grid {
     private Marquer.Widgets.StartFlashWaiting start_flash_waiting;
     private Marquer.Widgets.RightFlashingProgress flashing_progress_widget;
     private Marquer.Utils.VolatileDataStore volatile_data_store;
+    private Marquer.Utils.DriveManager drive_manager;
     private Granite.MessageDialog confirmation_dialog;
     private string drive_name = "";
     private string drive_unix = "";
@@ -35,6 +36,7 @@ public class Marquer.Widgets.RightStartFlash : Gtk.Grid {
     
     construct {
         volatile_data_store = Marquer.Utils.VolatileDataStore.instance;
+        drive_manager = new Marquer.Utils.DriveManager ();
         
         volatile_data_store.notify.connect ((signal_handler, signal_data) => {
             if (volatile_data_store.disk_information.length == 0) {
@@ -163,18 +165,24 @@ public class Marquer.Widgets.RightStartFlash : Gtk.Grid {
     private void start_flash_process () {
         user_selection_completed (-1);
         show_waiting_status ("Unmounting Drives");
-        Timeout.add (500, () => {
-            drive_manager.unmount_volumes (drive_unix);
         
+        drive_manager.unmount_operations.connect ((signal_handler) => {
             show_waiting_status ("Waiting for Authentication");
-            Timeout.add (500, () => {
-                connect_flash_process_channel ();
-                return false;
-            });            
+            
+            try {
+                Thread.create<void*> (connect_flash_process_channel, false);
+            } catch (ThreadError e) {
+                
+            }              
+        }); 
+               
+        Timeout.add (500, () => {
+            drive_manager.unmount_volumes (drive_unix);            
+            return false;            
         });
     }
     
-    private void connect_flash_process_channel () {
+    private void* connect_flash_process_channel () {
         try {
             string[] spawn_args = {"pkexec", "--user", "root", "dd", "bs=8M", "if=" + disk_path, "of=" + drive_unix, "conv=fdatasync", "status=progress"};
             string[] spawn_env = Environ.get ();
@@ -213,7 +221,9 @@ public class Marquer.Widgets.RightStartFlash : Gtk.Grid {
             
         } catch (SpawnError e) {
             print ("Error: %s\n", e.message);
-        }        
+        }         
+        
+        return null;
     }
     
     private bool process_line (IOChannel channel, IOCondition condition, string stream_name) {
@@ -227,21 +237,15 @@ public class Marquer.Widgets.RightStartFlash : Gtk.Grid {
             channel.read_line (out line, null, null);
             print ("%s: %s", stream_name, line);
             
-            if (stream_name == "stderr") {
-                if ("Request dismissed" in line) {
-                    show_authentication_failed ();
-                } else {
-                    //SHOW PROCESS FAILED
-                }                
-            } else if (stream_name == "stdout") {
-                if ("Marquer Connection Broken" in line) {
-                    //SHOW SUCCESS
-                } else if (0 == 1) {
-                    //CHK FOR UMOUNT OPUT
-                } else {
-                    update_flashing_progress ("0% (0 MB/s)", line, 0.2);
-                }
-            }
+            if ("Request dismissed" in line) {
+                show_authentication_failed ();
+            } else if ("records in" in line || "records out" in line) {
+                //FLASHING COMPLETE
+            } else if ("bytes" in line && "copied" in line) {
+                update_flashing_progress (line.substring (line.last_index_of (",") + 2), line, 0.2);
+            } else {
+                //FLASHING FAILED
+            } 
             
         } catch (IOChannelError e) {
             print ("%s: IOChannelError: %s\n", stream_name, e.message);
