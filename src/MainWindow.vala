@@ -109,7 +109,7 @@ public class Marquer.MainWindow : Hdy.ApplicationWindow {
             }
         });                
         
-        var carousel_indicator = new Hdy.CarouselIndicatorDots ();
+        var carousel_indicator = new Hdy.CarouselIndicatorLines ();
         carousel_indicator.set_carousel(right_carousel);
         
         left_grid = new Gtk.Grid ();
