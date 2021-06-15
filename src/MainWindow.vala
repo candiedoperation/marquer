@@ -127,10 +127,16 @@ public class Marquer.MainWindow : Hdy.ApplicationWindow {
         grid_main.attach(left_grid, 0, 0, 1, 1);
         grid_main.attach(right_grid, 1, 0, 3, 1);
         
-        var header_bar = new Hdy.WindowHandle();
-        header_bar.add(grid_main);
+        var hdy_header = new Hdy.HeaderBar ();
+        hdy_header.title = "Marquer";
+        hdy_header.show_close_button = true;
+        hdy_header.decoration_layout = "close:";
         
-        add(header_bar);
+        var hdy_grid = new Gtk.Grid ();
+        hdy_grid.attach (hdy_header, 0, 0);
+        hdy_grid.attach (grid_main, 0, 1);
+        
+        add(hdy_grid);
         show_all();
     }
     
