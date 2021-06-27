@@ -14,7 +14,7 @@
 
     You should have received a copy of the GNU General Public License
     along with this program.  If not, see <https://www.gnu.org/licenses/>.
-    
+
     Authored By: Atheesh Thirumalairajan <candiedoperation@icloud.com>
 */
 
@@ -26,11 +26,22 @@ public class Marquer.App : Gtk.Application {
 
     public override void activate () {
         Hdy.init (); //Initializing LibHandy
-        
+
         var window = new MainWindow ();
         window.application = this;
         window.window_position = Gtk.WindowPosition.CENTER;
         window.show_all ();
+
+        var quit_action = new SimpleAction ("quit", null);
+
+        add_action (quit_action);
+        set_accels_for_action ("app.quit", {"<Control>q"});
+
+        quit_action.activate.connect (() => {
+            if (window != null) {
+                window.destroy ();
+            }
+        });
     }
 }
 

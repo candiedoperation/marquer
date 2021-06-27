@@ -59,7 +59,9 @@ public class Marquer.Widgets.RightSelectDrive : Gtk.Grid {
         drive_frame = new Gtk.Frame ("");
         drive_frame.hexpand = true;
         drive_frame.vexpand = true;        
-        drive_frame.margin = 10; 
+        drive_frame.margin = 10;
+        drive_frame.margin_bottom = 13;
+        drive_frame.margin_top = 0; 
         drive_frame.get_label_widget ().destroy (); // Remove the Label, Workaround as null label not possible
         drive_frame.add (drive_list_parent);        
         
